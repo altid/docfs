@@ -3,7 +3,7 @@
 # Requires pdftohtml + pandoc + inotifywait
 
 DOCPATH=/media/docs
-WATCH=~/local/run/doc
+WATCH="$XDG_RUNTIME_DIR/doc"
 
 mkdir "$WATCH"
 inotifywait -qme create --format %f "$WATCH" | while read -r name; do
