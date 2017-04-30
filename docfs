@@ -1,0 +1,17 @@
+#!/bin/sh
+# Watch directory with inotifywait
+# When a directory is created within, search DOCPATH for similarily named file; strip suffix and convert document to markdown + resources.
+
+DOCPATH=/media/docs
+WATCH=~/local/run/doc
+
+mkdir "$WATCH"
+inotifywait -qme create --format %f "$WATCH" | while read -r name; do
+	case "(file -bL --mime-type "$name")" in
+		*pdf*)   pdftohtml "$DOCPATH/$name" "$WATCH/$name/$name.html" 
+				 pandoc -i "$WATCH/$name/$name"s.html -f html -t markdown -o "$WATCH/$name/$name.md" ;;
+		#*djvu*)
+		*epub*) unzip -d "$WATCH/$name" "$DOCPATH/$name" & 
+				pandoc -i "$DOCPATH/$name" -f epub -t markdown -o "$WATCH/$name/$name.md" ;;
+	esac
+done
