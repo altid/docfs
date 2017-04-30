@@ -1,7 +1,6 @@
 #!/bin/sh
-# Watch directory with inotifywait
 # When a directory is created within, search DOCPATH for similarily named file; strip suffix and convert document to markdown + resources.
-# Requires pdftohtml + pandoc
+# Requires pdftohtml + pandoc + inotifywait
 
 DOCPATH=/media/docs
 WATCH=~/local/run/doc
