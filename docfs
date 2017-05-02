@@ -1,17 +1,15 @@
 #!/bin/sh
-# When a directory is created within, search DOCPATH for similarily named file; strip suffix and convert document to markdown + resources.
-# Requires pdftohtml + pandoc + inotifywait
+# When a directory is created within, search DOCPATH for similarily named file; strip suffix and convert document to html
+# Requires pdftohtml inotifywait
 
-DOCPATH=/media/docs
+DOCPATH=~/media/docs
 WATCH="$XDG_RUNTIME_DIR/doc"
 
 mkdir "$WATCH"
 inotifywait -qme create --format %f "$WATCH" | while read -r name; do
 	case "(file -bL --mime-type "$name")" in
-		*pdf*)   pdftohtml "$DOCPATH/$name" "$WATCH/$name/$name.html" 
-				 pandoc -i "$WATCH/$name/$name"s.html -f html -t markdown -o "$WATCH/$name/$name.md" ;;
+		*pdf*)   pdftohtml "$DOCPATH/$name" "$WATCH/$name/$name.html" &
 		#*djvu*)
-		*epub*) unzip -d "$WATCH/$name" "$DOCPATH/$name" & 
-				pandoc -i "$DOCPATH/$name" -f epub -t markdown -o "$WATCH/$name/$name.md" ;;
+		*epub*) unzip -d "$WATCH/$name" "$DOCPATH/$name" &
 	esac
 done
