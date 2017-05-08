@@ -8,8 +8,8 @@ WATCH="$XDG_RUNTIME_DIR/doc"
 mkdir "$WATCH"
 inotifywait -qme create --format %f "$WATCH" | while read -r name; do
 	case "(file -bL --mime-type "$name")" in
-		*pdf*)   pdftohtml "$DOCPATH/$name" "$WATCH/$name/$name.html" &
+		*pdf*)   pdftohtml "$DOCPATH/$name" "$WATCH/$name/$name.html" & ;;
 		#*djvu*)
-		*epub*) unzip -d "$WATCH/$name" "$DOCPATH/$name" &
+		*epub*) unzip -d "$WATCH/$name" "$DOCPATH/$name" & ;;
 	esac
 done
