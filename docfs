@@ -1,15 +1,26 @@
 #!/bin/sh
-# When a directory is created within, search DOCPATH for similarily named file; strip suffix and convert document to html
 # Requires pdftohtml inotifywait
 
-DOCPATH=~/media/docs
+## Ugly bookkeeping
 WATCH="$XDG_RUNTIME_DIR/doc"
+rm "$WATCH"/ctl
+mkdir -p "$WATCH"
+mkfifo -m 600 -- "$WATCH"/ctl
 
-mkdir "$WATCH"
-inotifywait -qme create --format %f "$WATCH" | while read -r name; do
-	case "(file -bL --mime-type "$name")" in
-		*pdf*)   pdftohtml "$DOCPATH/$name" "$WATCH/$name/$name.html" & ;;
+create() {
+	title="$(basename "$1")"
+	mkdir -p "$WATCH/$title"
+	case "$(file -biL "$1")" in
+		*pdf*) pdftohtml "$1" "$WATCH/$title/$title.html" & ;;
 		#*djvu*)
-		*epub*) unzip -d "$WATCH/$name" "$DOCPATH/$name" & ;;
+		*epub*) unzip -d "$WATCH/$title" "$1" & ;;
+	esac
+}
+
+# Monitor our ctlfile
+tail -f "$WATCH"/ctl | while read -r name; do
+	case "$name" in
+		open*) test -d "$WATCH/$(basename "${name#open\ *}")" || create "${name#open\ *}" ;;
+		quit|exit) break ;;
 	esac
 done
