@@ -1,8 +1,9 @@
 # docfs
 Temporary implementation for a document -- html server
 
+## Usage
 Usage: Modify DOCPATH to match where your documents are stored
 
-mkdir "$XDG_RUNTIME_DIR/docs/nameofadocument"
+`printf '%s\n' "$DOCPATH/mydoc.pdf" > "$XDG_RUNTIME_DIR/doc/ctl"`
 
-inotifywait will pick up the creation of the directory, and parse the document. Currently, pdf and epub are supported.
+This will create a folder named mydoc.pdf, currently containing the html representation of the document passed in. In time, it will contain simply the markdown and image resources. 

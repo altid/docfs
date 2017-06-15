@@ -1,5 +1,8 @@
 #!/bin/sh
-# Requires pdftohtml inotifywait
+# Requires pdftohtml
+
+## TODO: Use cleanmark to create markdown dirs.
+## Unzip/pdftohtml in to a tmp directory, then cleanmark into our $WATCH
 
 ## Ugly bookkeeping
 WATCH="$XDG_RUNTIME_DIR/doc"
@@ -8,19 +11,25 @@ mkdir -p "$WATCH"
 mkfifo -m 600 -- "$WATCH"/ctl
 
 create() {
-	title="$(basename "$1")"
+	title="$(basename -- "$1")"
 	mkdir -p "$WATCH/$title"
-	case "$(file -biL "$1")" in
-		*pdf*) pdftohtml "$1" "$WATCH/$title/$title.html" & ;;
+	printf '%s\n' "$title" > "$WATCH/$title/title"
+	printf '%s\n' "converting $1 to html..." > "$WATCH/$title/status" 
+	## TODO: If we have an error, store it in status
+	case "$(file -biL -- "$1")" in
+		## TODO: Use a tmpfile here
+		*pdf*) pdftohtml -- "$1" "$WATCH/$title/$title.html" 1>/dev/null ;;
 		#*djvu*)
-		*epub*) unzip -d "$WATCH/$title" "$1" & ;;
+		*epub*) unzip -d -- "$WATCH/$title" "$1" 1>/dev/null ;;
 	esac
+	printf '%s\n' "converting $1 to markdown..." > "$WATCH/$title/status"
+	# TODO: Convert our html in tmpdir to markdown, place in appropriate folder
+	printf '%s\n' "$1" > "$WATCH/$title/status"
 }
 
 # Monitor our ctlfile
 tail -f "$WATCH"/ctl | while read -r name; do
 	case "$name" in
-		open*) test -d "$WATCH/$(basename "${name#open\ *}")" || create "${name#open\ *}" ;;
-		quit|exit) break ;;
+		o*|open*) test -d -- "$WATCH/$(basename "${name#open\ *}")" || create "${name#open\ *}" ;;
 	esac
 done
