@@ -51,19 +51,12 @@ func parsePdfTitle(c *fs.Control, docname string, r *pdf.Reader) {
 
 func parsePdfSidebar(c *fs.Control, docname string, r *pdf.Reader) {
 	entries := make(chan entry)
-	go func(entries chan entry) {
-		w := c.SideWriter(docname)
-		sidebar := cleanmark.NewCleaner(w)
-		defer sidebar.Close()
-		for e := range entries {
-			sidebar.WriteList(e.len, e.msg)
-		}
-	}(entries)
+	defer close(entries)
+	go writeOutline(c, docname, entries)
 	// Skip the document title - do the first walk here
 	for _, item := range r.Outline().Child {
 		walkPdfOutline(item, 0, entries)
 	}
-	close(entries)
 }
 
 func walkPdfOutline(r pdf.Outline, n int, entries chan entry) {
@@ -71,6 +64,7 @@ func walkPdfOutline(r pdf.Outline, n int, entries chan entry) {
 		entries <- entry{
 			len: n,
 			msg: []byte(r.Title),
+			url: []byte(r.Title),
 		}
 	}
 	n++

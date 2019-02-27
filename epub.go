@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"path"
 	"os"
 
@@ -18,28 +19,40 @@ func parseEpubTitle(c *fs.Control, docname string, r *epubgo.Epub) {
 }
 
 func parseEpubSidebar(c *fs.Control, docname string, r *epubgo.Epub) {
+	var n int
 	entries := make(chan entry)
-	go func(entries chan entry) {
-		w := c.SideWriter(docname)
-		sidebar := cleanmark.NewCleaner(w)
-		defer sidebar.Close()
-		for e := range entries {
-			sidebar.WriteList(e.len, e.msg)
+	defer close(entries)
+	go writeOutline(c, docname, entries)
+	it, err := r.Navigation()
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	for {
+		entries <- entry{
+			len: n,
+			url: []byte(it.URL()),
+			msg: []byte(it.Title()),
 		}
-	}(entries)		
-	//it, err := r.Navigation()
-	// walk it.Next()'s. We have to check depth here, and In() or Out() accordingly
-	// We should check HasChildren to see if we go In, IsLast() to see if we go out, etc.
-	// it.Title()
-	// it.Next()
-	// it.Url()
-	// TODO v2: We want to set up proper anchor links here, and in the main body.
-	close(entries)	
+		switch {
+		case it.HasChildren():
+			it.In()
+			n++
+		case it.IsLast():
+			err = it.Out()
+			n--
+		}
+		err = it.Next()
+		if err != nil {
+			break
+		}
+	}
 }
 
 func parseEpubBody(c *fs.Control, docname string, r *epubgo.Epub) error {
 	// Then we iterate through spine elements, and read it all in. 
-	// It's likely there will be links to `files` in the pdf, which are images, and other shit. So we'll find this too and add it to our resources.
+	// It's likely there will be links to `files` in the pdf, which are images, and other shit.
+	// We'll use headers like ## 1.1 Fornicating In The Meadows, as anchors.
 	return nil
 }
 

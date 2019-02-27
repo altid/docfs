@@ -9,13 +9,24 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/ubqt-systems/cleanmark"
 	"github.com/ubqt-systems/fs"
 )
 
-// This is for sidebar or header entries that have an integer degree attached to them.
 type entry struct {
 	len int
 	msg []byte
+	url []byte
+}
+
+func writeOutline(c *fs.Control, docname string, entries chan entry) {
+	w := c.SideWriter(docname)
+	sidebar := cleanmark.NewCleaner(w)
+	defer sidebar.Close()
+	for e := range entries {
+		url := cleanmark.NewUrl(e.url, e.msg)
+		sidebar.WritefList(e.len, "%s\n", url)
+	}
 }
 
 type docs struct {
