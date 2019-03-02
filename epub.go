@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"log"
 	"path"
 	"os"
@@ -50,9 +51,30 @@ func parseEpubSidebar(c *fs.Control, docname string, r *epubgo.Epub) {
 }
 
 func parseEpubBody(c *fs.Control, docname string, r *epubgo.Epub) error {
-	// Then we iterate through spine elements, and read it all in. 
-	// It's likely there will be links to `files` in the pdf, which are images, and other shit.
-	// We'll use headers like ## 1.1 Fornicating In The Meadows, as anchors.
+	// Iterate through spine elements, and convert html to our markdown
+	it, err := r.Spine()
+	if err != nil {
+		return err
+	}
+	w := c.MainWriter(docname, "document")
+	body := cleanmark.NewHTMLCleaner(w)
+	defer body.Close()
+	for {
+		content, err := it.Open()
+		if err != nil {
+			log.Print(err)
+			continue
+		}
+		err = body.Parse(content)
+		if err != io.EOF {
+			return err
+		}
+		err = it.Next()
+		if err != nil {
+			break
+		}
+		body.WriteString("\n")
+	}
 	return nil
 }
 

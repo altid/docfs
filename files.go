@@ -29,8 +29,7 @@ func writeOutline(c *fs.Control, docname string, entries chan entry) {
 	}
 }
 
-type docs struct {
-}
+type docs struct {}
 
 func newDocs() *docs {
 	return &docs{}
