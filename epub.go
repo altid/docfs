@@ -8,7 +8,7 @@ import (
 
 	"github.com/meskio/epubgo"
 	"github.com/ubqt-systems/cleanmark"
-	"github.com/ubqt-systems/fs"
+	"github.com/ubqt-systems/fslib"
 )
 
 func parseEpubTitle(c *fs.Control, docname string, r *epubgo.Epub) {

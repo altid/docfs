@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 
 	"github.com/ubqt-systems/cleanmark"
-	"github.com/ubqt-systems/fs"
+	"github.com/ubqt-systems/fslib"
 )
 
 type entry struct {

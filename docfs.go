@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/ubqt-systems/fs"
+	"github.com/ubqt-systems/fslib"
 )
 
 var mtpt = flag.String("p", "/tmp/ubqt", "Path for file system (Default /tmp/ubqt)")

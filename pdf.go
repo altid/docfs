@@ -1,26 +1,23 @@
 package main
 
 import (
-	"fmt"
+	"math"
 	"os"
 	"path"
+	"sort"
+	"strings"
 
 	"github.com/ubqt-systems/cleanmark"
-	"github.com/ubqt-systems/fs"
+	"github.com/ubqt-systems/fslib"
 	"rsc.io/pdf"
 )
 
 func parsePdfBody(c *fs.Control, docname string, r *pdf.Reader) error {
 	// test if logged document exists and is not empty
 	// exit early
-	// loop writetomain.
 	// TODO: v2 set up logdir/resources/images/mydoc.pdf/, and link that to our local mydoc.pdf/images/
-	// TODO: v2 We want anchor links when they exist
-	// We want... ANCHOR LINKS WHEN THEY EXIST
-	// Initially, we'll just translate the page to simple text
-	// eventually we'll properly convert it to markdown.
+	// TODO: v2 anchor links
 	numPages := r.NumPage()
-	fmt.Println(numPages)
 	w := c.MainWriter(docname, "document")
 	body := cleanmark.NewCleaner(w)
 	defer body.Close()
@@ -29,11 +26,7 @@ func parsePdfBody(c *fs.Control, docname string, r *pdf.Reader) error {
 		if page.V.IsNull() {
 			continue
 		}
-		// Alright buf[y][x] - then we right the buf[y] when y increases
-		for _, t := range page.Content().Text {
-			fmt.Print(t.S)
-		}
-		//body.WriteStringEscaped(page.V.RawString())
+		parsePage(body, page)
  	}
 	return nil
 }
@@ -96,4 +89,82 @@ func parsePdf(c *fs.Control, newfile string) error {
 		return err
 	}
 	return c.Remove(docname, "status")
+}
+
+func parsePage(body *cleanmark.Cleaner, page pdf.Page) {
+	content := page.Content()
+	var text []pdf.Text
+	for _, t := range content.Text {
+		text = append(text, t)
+	}
+	text = findWords(text)
+	for _, t := range text {
+		body.WriteStringEscaped(t.S + " ")
+	}
+}
+
+// Adapted from golang.org/x/arch/arm/armspec
+// Copyright 2014 The Go Authors
+func findWords(chars []pdf.Text) (words []pdf.Text) {
+	const nudge = 1
+	sort.Sort(pdf.TextVertical(chars))
+	old := -100000.0
+	for i, c := range chars {
+		if c.Y != old && math.Abs(old-c.Y) < nudge {
+			chars[i].Y = old
+		} else {
+			old = c.Y
+		}
+	}
+	sort.Sort(pdf.TextVertical(chars))
+	for i := 0; i < len(chars); {
+		j := i + 1
+		for j < len(chars) && chars[j].Y == chars[i].Y {
+			j++
+		}
+		var end float64
+		// Split line into phrases
+		for k := i; k < j; {
+			ck := &chars[k]
+			s := ck.S
+			end = ck.X + ck.W
+			charSpace := ck.FontSize / 6
+			wordSpace := ck.FontSize * 2 / 3
+			l := k + 1
+			for l < j {
+				// Grow word
+				cl := &chars[l]
+				if sameFont(cl.Font, ck.Font) && math.Abs(cl.FontSize-ck.FontSize) < 0.1 && cl.X <= end+charSpace {
+					s += cl.S
+					end = cl.X + cl.W
+					l++
+					continue
+				}
+				// Add space to phrase before next word
+				if sameFont(cl.Font, ck.Font) && math.Abs(cl.FontSize-ck.FontSize) < 0.1 && cl.X <= end+wordSpace {
+					s += " " + cl.S
+					end = cl.X + cl.W
+					l++
+					continue
+				}
+				break
+			}
+			f := ck.Font
+			f = strings.TrimSuffix(f, ",Italic")
+			f = strings.TrimSuffix(f, "-Italic")
+			words = append(words, pdf.Text{f, ck.FontSize, ck.X, ck.Y, end - ck.X, s})
+			k = l
+		}
+		words[len(words) - 1].S += "\n"
+		i = j
+	}
+	return words
+}
+
+func sameFont(f1, f2 string) bool {
+	f1 = strings.TrimSuffix(f1, ",Italic")
+	f1 = strings.TrimSuffix(f1, "-Italic")
+	f2 = strings.TrimSuffix(f2, ",Italic")
+	f2 = strings.TrimSuffix(f2, "-Italic")
+	return strings.TrimSuffix(f1, ",Italic") == strings.TrimSuffix(f2, ",Italic") || f1 == "Symbol" || f2 == "Symbol" || f1 == "TimesNewRoman" || f2 == "TimesNewRoman"
 }
