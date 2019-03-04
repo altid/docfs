@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/ubqt-systems/cleanmark"
-	"github.com/ubqt-systems/fslib"
+	fs "github.com/ubqt-systems/fslib"
 	"rsc.io/pdf"
 )
 
@@ -27,7 +27,7 @@ func parsePdfBody(c *fs.Control, docname string, r *pdf.Reader) error {
 			continue
 		}
 		parsePage(body, page)
- 	}
+	}
 	return nil
 }
 
@@ -155,7 +155,7 @@ func findWords(chars []pdf.Text) (words []pdf.Text) {
 			words = append(words, pdf.Text{f, ck.FontSize, ck.X, ck.Y, end - ck.X, s})
 			k = l
 		}
-		words[len(words) - 1].S += "\n"
+		words[len(words)-1].S += "\n"
 		i = j
 	}
 	return words

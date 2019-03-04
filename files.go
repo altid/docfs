@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 
 	"github.com/ubqt-systems/cleanmark"
-	"github.com/ubqt-systems/fslib"
+	fs "github.com/ubqt-systems/fslib"
 )
 
 type entry struct {
@@ -29,7 +29,7 @@ func writeOutline(c *fs.Control, docname string, entries chan entry) {
 	}
 }
 
-type docs struct {}
+type docs struct{}
 
 func newDocs() *docs {
 	return &docs{}
@@ -76,7 +76,7 @@ func mimeFromContents(c *fs.Control, newfile string) error {
 	if err != nil {
 		return err
 	}
-	mime :=  http.DetectContentType(buf[:n])
+	mime := http.DetectContentType(buf[:n])
 	return doParse(c, newfile, mime)
 }
 

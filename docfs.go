@@ -18,7 +18,7 @@ func main() {
 		os.Exit(1)
 	}
 	doc := newDocs()
-	logdir := fs.GetLogDir("docs")
+	logdir := fslib.GetLogDir("docs")
 	ctrl, err := fs.CreateCtrlFile(doc, logdir, *mtpt, "docs", "document")
 	if err != nil {
 		log.Fatal(err)

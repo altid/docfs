@@ -3,19 +3,19 @@ package main
 import (
 	"io"
 	"log"
-	"path"
 	"os"
+	"path"
 
 	"github.com/meskio/epubgo"
 	"github.com/ubqt-systems/cleanmark"
-	"github.com/ubqt-systems/fslib"
+	fs "github.com/ubqt-systems/fslib"
 )
 
 func parseEpubTitle(c *fs.Control, docname string, r *epubgo.Epub) {
 	w := c.TitleWriter(docname)
 	title := cleanmark.NewCleaner(w)
 	defer title.Close()
-	t, _:= r.Metadata("title")
+	t, _ := r.Metadata("title")
 	title.WriteStringEscaped(t[0])
 }
 
