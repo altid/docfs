@@ -22,7 +22,6 @@ ls <dir>/docs/document.pdf/
 	tabs
 ```
 
-
 ## Typcial Installation
 
 To add docfs to your PATH:
@@ -50,10 +49,11 @@ Currently, pdfs are unsupported. You can toy around with opening them, and will 
 ## Epub
 
 Currently, epubs are in an alpha state of support. They are fully converted to ubqt-compatible directory structures, but there may be elements which are missing, incorrectly formatted, or invalid when read by particular clients. 
+Image assets for a given document will be made available, but currently are not.
 
 ## Persistence
 
-ubqt servers are meant to live in temporary storage, with anything long lasting relying on persistent caches. docfs uses the log= config parameter to dictate where these logs live - it stores the document, translated to markdown, at <log>/doc/thatfile
+ubqt servers are meant to live in temporary storage, with anything long lasting relying on persistent caches. docfs uses the log= config parameter to dictate where these logs live - it stores the document body, translated to markdown, at <log>/doc/thatfile, but not the Table of Contents, or the Title of a document. These are much more trivial to parse, and in practice there's no benefit to caching that data.
 
 ## With 9p-server, Clients
 
