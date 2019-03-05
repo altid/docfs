@@ -1,10 +1,8 @@
 # Docfs
-This doesn't even build right now. 
 
 ## Overview
 
-docfs converts pdf files, such that they can be read through ubqt clients.
-Currently, a simple text representation of a given pdf is provided only.
+Docfs is a file service, which translates pdf and epub documents into ubqt-flavored markup.
 
 ## General Usage
 
