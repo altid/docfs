@@ -1,24 +1,12 @@
 # Docfs
 
-## Overview
-
 Docfs is a file service, which translates pdf and epub documents into ubqt-flavored markup.
 
-## General Usage
+## Usage
 
 `docfs [-p <dir>]`
-<dir> will default to /tmp/ubqt/docs if none is provided.
 
-To load a document for reading via ubqt, you would do as follows.
-
-```
-echo 'open /path/to/a/normal/document.pdf' > <dir>/docs/ctrl
-ls <dir>/docs/document.pdf/
-	document
-	title
-	status
-	tabs
-```
+ - <dir> will default to /tmp/ubqt/docs if none is provided.
 
 ## Typcial Installation
 
@@ -30,15 +18,17 @@ Alternatively, you can build it in your current working directory
 
 ## Configuration
 
-docfs uses the general ubqt.cfg file, used by many of the file servers in ubqt.
-The only available option at the time of writing is setting the directory for cached 
-documents (documents you've previously opened)
-
 ```
+# ubqt.cfg - Place this in your distros' default configuration directory
 service=docs
 	log=/usr/halfwit/log
-
+	#listen_address=192.168.0.4
 ```
+ 
+ - log is a location to store the body of markdown from parsed documents. A special value of `none` disables logging.
+ - listen_address is an advanced feature, see [Using listen_address](https://ubqt-systems.github.io/using-listen-address.html)
+
+> See [ubqt configuration](https://ubqt-systems.github.io/ubqt-configurations.html) for more information
 
 ## PDF
 
@@ -48,15 +38,3 @@ Currently, pdfs are unsupported. You can toy around with opening them, and will 
 
 Currently, epubs are in an alpha state of support. They are fully converted to ubqt-compatible directory structures, but there may be elements which are missing, incorrectly formatted, or invalid when read by particular clients. 
 Image assets for a given document will be made available, but currently are not.
-
-## Persistence
-
-ubqt servers are meant to live in temporary storage, with anything long lasting relying on persistent caches. docfs uses the log= config parameter to dictate where these logs live - it stores the document body, translated to markdown, at <log>/doc/thatfile, but not the Table of Contents, or the Title of a document. These are much more trivial to parse, and in practice there's no benefit to caching that data.
-
-## With 9p-server, Clients
-
-When 9p-server is ran in the parent directory of docfs's path, ie /tmp/ubqt, it will find and integrate any documents you open. Normal buffer management, including open, and close work as usual. Closing a document will remove it from docfs's path, ie /tmp/ubqt/docs/, but the persistent copy that lives in your log directory will not be destroyed. Subsequent calls to open on the same document will skip parsing the main body of the document, and instead only need to populate the sidebar (ToC), the title, and any applicable status messages will be written to status.
-
-Clients connecting over 9p will be able to view a tab list of open buffers from docfs if authenticated to do so, and the read state on any given document will be stashed - meaning you can migrate clients and not lose your place in a document!
-
-It is important to note, read states will *not* be stored across restarts of docfs, and opening on a previously closed document, likewise will not synchronize read state. 
