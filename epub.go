@@ -148,6 +148,9 @@ func parseEpub(c *fs.Control, newfile string) error {
 	w := c.StatusWriter(docname)
 	status := cleanmark.NewCleaner(w)
 	defer status.Close()
+
+	// TODO: EPUB3 currently aren't supported by https://github.com/meskio/epubgo
+	// https://github.com/ubqt-systems/docfs/issues/4
 	pages, err := epubgo.Open(newfile)
 	if err != nil {
 		status.WriteString("Error opening file. See log for details.")
