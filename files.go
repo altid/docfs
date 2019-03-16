@@ -24,7 +24,10 @@ func writeOutline(c *fs.Control, docname string, entries chan entry) {
 	sidebar := cleanmark.NewCleaner(w)
 	defer sidebar.Close()
 	for e := range entries {
-		url := cleanmark.NewUrl(e.url, e.msg)
+		url, err := cleanmark.NewUrl(e.url, e.msg)
+		if err != nil {
+			continue
+		}
 		sidebar.WritefList(e.len, "%s\n", url)
 	}
 }
