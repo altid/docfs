@@ -30,5 +30,7 @@ Currently, pdfs are unsupported. You can toy around with opening them, and will 
 
 ## Epub
 
-Currently, epubs are in an alpha state of support. They are fully converted to ubqt-compatible directory structures, but there may be elements which are missing, incorrectly formatted, or invalid when read by particular clients. 
-Image assets for a given document will be made available, but currently are not.
+Currently, epubs are in an alpha state of support. They are fully converted to ubqt-compatible directory structures, but there may be elements which are missing, incorrectly formatted, or invalid when read by particular clients.
+
+EPUB3 are currently not supported. Any help here is greatly appreciated!
+
