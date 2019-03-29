@@ -55,7 +55,7 @@ func (d *docs) Close(c *fs.Control, newfile string) error {
 	return nil
 }
 
-func (d *docs) Default(c *fs.Control, line string) error {
+func (d *docs) Default(c *fs.Control, cmd, from, msg string) error {
 	return nil
 }
 
