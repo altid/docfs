@@ -44,7 +44,6 @@ func (d *docs) Open(c *fs.Control, newfile string) error {
 	if err != nil {
 		log.Printf("%v in Open function call", err)
 		c.DeleteBuffer(path.Base(newfile), "document")
-		log.Print(err)
 		return err
 	}
 	return nil
@@ -53,6 +52,11 @@ func (d *docs) Open(c *fs.Control, newfile string) error {
 func (d *docs) Close(c *fs.Control, newfile string) error {
 	c.DeleteBuffer(path.Base(newfile), "document")
 	return nil
+}
+
+func (d *docs) Link(c *fs.Control, from, newfile string) error {
+	c.DeleteBuffer(path.Base(newfile), "document")
+	return d.Open(c, newfile)
 }
 
 func (d *docs) Default(c *fs.Control, cmd, from, msg string) error {
@@ -72,6 +76,7 @@ func doParse(c *fs.Control, newfile, mime string) error {
 func mimeFromContents(c *fs.Control, newfile string) error {
 	buf := make([]byte, 512)
 	fp, err := os.Open(newfile)
+	defer fp.Close()
 	if err != nil {
 		return err
 	}

@@ -23,6 +23,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	// TODO(halfwit): We want to create a default buffer - small how-to document would suffice
+	// https://github.com/ubqt-systems/docfs/issues/5
 	defer ctrl.Cleanup()
 	ctrl.Listen()
 }
