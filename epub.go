@@ -9,8 +9,8 @@ import (
 	"regexp"
 
 	"github.com/meskio/epubgo"
-	"github.com/ubqt-systems/cleanmark"
-	fs "github.com/ubqt-systems/fslib"
+	"github.com/altid/cleanmark"
+	fs "github.com/altid/fslib"
 )
 
 var findAssets = regexp.MustCompile(`<img\s+[^>]*?src=["']([^"']+)`)
@@ -150,7 +150,7 @@ func parseEpub(c *fs.Control, newfile string) error {
 	defer status.Close()
 
 	// TODO: EPUB3 currently aren't supported by https://github.com/meskio/epubgo
-	// https://github.com/ubqt-systems/docfs/issues/4
+	// https://github.com/altid/docfs/issues/4
 	pages, err := epubgo.Open(newfile)
 	if err != nil {
 		status.WriteString("Error opening file. See log for details.")

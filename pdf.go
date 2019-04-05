@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/ubqt-systems/cleanmark"
-	fs "github.com/ubqt-systems/fslib"
+	"github.com/altid/cleanmark"
+	fs "github.com/altid/fslib"
 	"rsc.io/pdf"
 )
 

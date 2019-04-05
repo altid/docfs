@@ -5,10 +5,10 @@ import (
 	"log"
 	"os"
 
-	"github.com/ubqt-systems/fslib"
+	"github.com/altid/fslib"
 )
 
-var mtpt = flag.String("p", "/tmp/ubqt", "Path for file system (Default /tmp/ubqt)")
+var mtpt = flag.String("p", "/tmp/altid", "Path for file system")
 
 func main() {
 	// Drink tab, listen to duran duran
@@ -24,7 +24,7 @@ func main() {
 		log.Fatal(err)
 	}
 	// TODO(halfwit): We want to create a default buffer - small how-to document would suffice
-	// https://github.com/ubqt-systems/docfs/issues/5
+	// https://github.com/altid//docfs/issues/5
 	defer ctrl.Cleanup()
 	ctrl.Listen()
 }

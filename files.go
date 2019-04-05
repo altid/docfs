@@ -9,8 +9,8 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/ubqt-systems/cleanmark"
-	fs "github.com/ubqt-systems/fslib"
+	"github.com/altid/cleanmark"
+	fs "github.com/altid/fslib"
 )
 
 type entry struct {
