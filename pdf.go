@@ -16,7 +16,8 @@ func parsePdfBody(c *fs.Control, docname string, r *pdf.Reader) error {
 	// test if logged document exists and is not empty
 	// exit early
 	// TODO halfwit: v0.0.1 set up logdir/resources/images/mydoc.pdf/, and link that to our local mydoc.pdf/images/
-	// TODO halfwit: v0.0.1 add anchors to link sidebar items to the main document
+	// TODO halfwit: v0.0.1 add anchors to link aside items to the main document
+	// This will be fixed with Navi
 	numPages := r.NumPage()
 	w := c.MainWriter(docname, "document")
 	body := cleanmark.NewCleaner(w)

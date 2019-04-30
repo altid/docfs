@@ -19,16 +19,17 @@ type entry struct {
 	url []byte
 }
 
+// TODO: Test navi
 func writeOutline(c *fs.Control, docname string, entries chan entry) {
 	w := c.SideWriter(docname)
-	sidebar := cleanmark.NewCleaner(w)
-	defer sidebar.Close()
+	aside := cleanmark.NewCleaner(w)
+	defer aside.Close()
 	for e := range entries {
 		url, err := cleanmark.NewUrl(e.url, e.msg)
 		if err != nil {
 			continue
 		}
-		sidebar.WritefList(e.len, "%s\n", url)
+		aside.WritefList(e.len, "%s\n", url)
 	}
 }
 
