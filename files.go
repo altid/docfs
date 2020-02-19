@@ -9,8 +9,8 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/altid/cleanmark"
-	fs "github.com/altid/fslib"
+	"github.com/altid/libs/fs"
+	"github.com/altid/libs/markup"
 )
 
 type entry struct {
@@ -22,10 +22,10 @@ type entry struct {
 // TODO: Test navi
 func writeOutline(c *fs.Control, docname string, entries chan entry) {
 	w := c.SideWriter(docname)
-	aside := cleanmark.NewCleaner(w)
+	aside := markup.NewCleaner(w)
 	defer aside.Close()
 	for e := range entries {
-		url, err := cleanmark.NewUrl(e.url, e.msg)
+		url, err := markup.NewUrl(e.url, e.msg)
 		if err != nil {
 			continue
 		}

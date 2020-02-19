@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/altid/fslib"
+	"github.com/altid/libs/fs"
 )
 
 var mtpt = flag.String("p", "/tmp/altid", "Path for file system")
@@ -18,8 +18,8 @@ func main() {
 		os.Exit(1)
 	}
 	doc := newDocs()
-	logdir := fslib.GetLogDir("docs")
-	ctrl, err := fslib.CreateCtrlFile(doc, logdir, *mtpt, "docs", "document")
+	logdir := fs.GetLogDir("docs")
+	ctrl, err := fs.CreateCtlFile(doc, logdir, *mtpt, "docs", "document")
 	if err != nil {
 		log.Fatal(err)
 	}

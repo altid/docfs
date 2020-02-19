@@ -6,20 +6,20 @@ import (
 	"os"
 	"path"
 
+	"github.com/altid/libs/fs"
+	"github.com/altid/libs/html"
+	"github.com/altid/libs/markup"
 	"github.com/meskio/epubgo"
-	"github.com/altid/cleanmark"
-	fs "github.com/altid/fslib"
 )
 
-
 type helper struct {
-	c *fs.Control
-	r *epubgo.Epub
+	c   *fs.Control
+	r   *epubgo.Epub
 	dir string
 }
 
-// Maybe EPUB 3 uses <nav> properly? 
-func (h *helper) Nav(u *cleanmark.Url) error {
+// Maybe EPUB 3 uses <nav> properly?
+func (h *helper) Nav(u *markup.Url) error {
 	return nil
 }
 
@@ -52,14 +52,14 @@ func (h *helper) Img(link string) error {
 func parseEpubNavi(c *fs.Control, docname string, r *epubgo.Epub) error {
 	var n int
 	w := c.NavWriter(docname)
-	navi := cleanmark.NewCleaner(w)
+	navi := markup.NewCleaner(w)
 	defer navi.Close()
 	it, err := r.Navigation()
 	if err != nil {
 		return err
 	}
 	for {
-		url, _ := cleanmark.NewUrl([]byte(it.URL()), []byte(it.Title()))
+		url, _ := markup.NewUrl([]byte(it.URL()), []byte(it.Title()))
 		navi.WritefList(n, "%s\n", url)
 		switch {
 		case it.HasChildren():
@@ -78,7 +78,7 @@ func parseEpubNavi(c *fs.Control, docname string, r *epubgo.Epub) error {
 
 func parseEpubTitle(c *fs.Control, docname string, r *epubgo.Epub) {
 	w := c.TitleWriter(docname)
-	title := cleanmark.NewCleaner(w)
+	title := markup.NewCleaner(w)
 	defer title.Close()
 	t, _ := r.Metadata("title")
 	title.WriteStringEscaped(t[0])
@@ -86,8 +86,8 @@ func parseEpubTitle(c *fs.Control, docname string, r *epubgo.Epub) {
 
 func parseEpubBody(c *fs.Control, docname string, r *epubgo.Epub) error {
 	h := &helper{
-		c: c,
-		r: r,
+		c:   c,
+		r:   r,
 		dir: docname,
 	}
 	it, err := r.Spine()
@@ -95,7 +95,7 @@ func parseEpubBody(c *fs.Control, docname string, r *epubgo.Epub) error {
 		return err
 	}
 	w := c.MainWriter(docname, "document")
-	body := cleanmark.NewHTMLCleaner(w, h)
+	body := html.NewHTMLCleaner(w, h)
 	defer body.Close()
 	for {
 		content, err := it.Open()
@@ -122,7 +122,7 @@ func parseEpub(c *fs.Control, newfile string) error {
 		os.MkdirAll(docdir, 0755)
 	}
 	w := c.StatusWriter(docname)
-	status := cleanmark.NewCleaner(w)
+	status := markup.NewCleaner(w)
 	defer status.Close()
 
 	// TODO: EPUB3 currently aren't supported by https://github.com/meskio/epubgo

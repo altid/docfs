@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/altid/cleanmark"
-	fs "github.com/altid/fslib"
+	"github.com/altid/libs/fs"
+	"github.com/altid/libs/markup"
 	"rsc.io/pdf"
 )
 
@@ -20,7 +20,7 @@ func parsePdfBody(c *fs.Control, docname string, r *pdf.Reader) error {
 	// This will be fixed with Navi
 	numPages := r.NumPage()
 	w := c.MainWriter(docname, "document")
-	body := cleanmark.NewCleaner(w)
+	body := markup.NewCleaner(w)
 	defer body.Close()
 	for i := 1; i <= numPages; i++ {
 		page := r.Page(i)
@@ -34,7 +34,7 @@ func parsePdfBody(c *fs.Control, docname string, r *pdf.Reader) error {
 
 func parsePdfTitle(c *fs.Control, docname string, r *pdf.Reader) {
 	w := c.TitleWriter(docname)
-	title := cleanmark.NewCleaner(w)
+	title := markup.NewCleaner(w)
 	defer title.Close()
 	tstring := r.Outline().Title
 	if tstring == "" {
@@ -74,7 +74,7 @@ func parsePdf(c *fs.Control, newfile string) error {
 		os.MkdirAll(docdir, 0755)
 	}
 	w := c.StatusWriter(docname)
-	status := cleanmark.NewCleaner(w)
+	status := markup.NewCleaner(w)
 	defer status.Close()
 	pages, err := pdf.Open(newfile)
 	if err != nil {
@@ -92,7 +92,7 @@ func parsePdf(c *fs.Control, newfile string) error {
 	return c.Remove(docname, "status")
 }
 
-func parsePage(body *cleanmark.Cleaner, page pdf.Page) {
+func parsePage(body *markup.Cleaner, page pdf.Page) {
 	content := page.Content()
 	var text []pdf.Text
 	for _, t := range content.Text {
