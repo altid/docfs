@@ -19,7 +19,12 @@ func parsePdfBody(c *fs.Control, docname string, r *pdf.Reader) error {
 	// TODO halfwit: v0.0.1 add anchors to link aside items to the main document
 	// This will be fixed with Navi
 	numPages := r.NumPage()
-	w := c.MainWriter(docname, "document")
+
+	w, err := c.MainWriter(docname, "document")
+	if err != nil {
+		return err
+	}
+
 	body := markup.NewCleaner(w)
 	defer body.Close()
 	for i := 1; i <= numPages; i++ {
@@ -29,18 +34,26 @@ func parsePdfBody(c *fs.Control, docname string, r *pdf.Reader) error {
 		}
 		parsePage(body, page)
 	}
+
 	return nil
 }
 
-func parsePdfTitle(c *fs.Control, docname string, r *pdf.Reader) {
-	w := c.TitleWriter(docname)
+func parsePdfTitle(c *fs.Control, docname string, r *pdf.Reader) error {
+	w, err := c.TitleWriter(docname)
+	if err != nil {
+		return err
+	}
+
 	title := markup.NewCleaner(w)
 	defer title.Close()
+
 	tstring := r.Outline().Title
 	if tstring == "" {
 		tstring = docname
 	}
 	title.WriteStringEscaped(tstring)
+
+	return nil
 }
 
 func parsePdfSidebar(c *fs.Control, docname string, r *pdf.Reader) {
@@ -69,35 +82,44 @@ func walkPdfOutline(r pdf.Outline, n int, entries chan entry) {
 
 func parsePdf(c *fs.Control, newfile string) error {
 	docname := path.Base(newfile)
+
 	docdir := path.Join(*mtpt, "docs", docname)
 	if _, err := os.Stat(docdir); os.IsNotExist(err) {
 		os.MkdirAll(docdir, 0755)
 	}
-	w := c.StatusWriter(docname)
-	status := markup.NewCleaner(w)
-	defer status.Close()
-	pages, err := pdf.Open(newfile)
+
+	w, err := c.StatusWriter(docname)
 	if err != nil {
-		status.WriteString("Error opening file. See log for details.")
 		return err
 	}
+
+	status := markup.NewCleaner(w)
+	defer status.Close()
+
+	pages, err := pdf.Open(newfile)
+	if err != nil {
+		return err
+	}
+
 	status.WriteString("Parsing file...")
 	parsePdfTitle(c, docname, pages)
 	parsePdfSidebar(c, docname, pages)
-	err = parsePdfBody(c, docname, pages)
-	if err != nil {
-		status.WriteString("Error parsing file. See log for details.")
-		return err
+
+	if e := parsePdfBody(c, docname, pages); e != nil {
+		return e
 	}
+
 	return c.Remove(docname, "status")
 }
 
 func parsePage(body *markup.Cleaner, page pdf.Page) {
 	content := page.Content()
+
 	var text []pdf.Text
 	for _, t := range content.Text {
 		text = append(text, t)
 	}
+
 	text = findWords(text)
 	for _, t := range text {
 		body.WriteStringEscaped(t.S + " ")

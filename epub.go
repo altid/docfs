@@ -33,6 +33,7 @@ func (h *helper) Img(link string) error {
 		"EPUB/" + link,
 		link,
 	}
+
 	for _, try := range dirs {
 		rc, err = h.r.OpenFile(try)
 		if err == nil {
@@ -42,22 +43,34 @@ func (h *helper) Img(link string) error {
 	if err != nil {
 		return err
 	}
+
 	defer rc.Close()
-	wc := h.c.ImageWriter(h.dir, link)
+	wc, err := h.c.ImageWriter(h.dir, link)
+	if err != nil {
+		return err
+	}
+
 	defer wc.Close()
 	_, err = io.Copy(wc, rc)
+
 	return err
 }
 
 func parseEpubNavi(c *fs.Control, docname string, r *epubgo.Epub) error {
 	var n int
-	w := c.NavWriter(docname)
+	w, err := c.NavWriter(docname)
+	if err != nil {
+		return err
+	}
+
 	navi := markup.NewCleaner(w)
 	defer navi.Close()
+
 	it, err := r.Navigation()
 	if err != nil {
 		return err
 	}
+
 	for {
 		url, _ := markup.NewUrl([]byte(it.URL()), []byte(it.Title()))
 		navi.WritefList(n, "%s\n", url)
@@ -69,6 +82,7 @@ func parseEpubNavi(c *fs.Control, docname string, r *epubgo.Epub) error {
 			it.Out()
 			n--
 		}
+
 		err = it.Next()
 		if err != nil {
 			return err
@@ -76,12 +90,18 @@ func parseEpubNavi(c *fs.Control, docname string, r *epubgo.Epub) error {
 	}
 }
 
-func parseEpubTitle(c *fs.Control, docname string, r *epubgo.Epub) {
-	w := c.TitleWriter(docname)
+func parseEpubTitle(c *fs.Control, docname string, r *epubgo.Epub) error {
+	w, err := c.TitleWriter(docname)
+	if err != nil {
+		return err
+	}
+
 	title := markup.NewCleaner(w)
 	defer title.Close()
 	t, _ := r.Metadata("title")
 	title.WriteStringEscaped(t[0])
+
+	return nil
 }
 
 func parseEpubBody(c *fs.Control, docname string, r *epubgo.Epub) error {
@@ -94,7 +114,11 @@ func parseEpubBody(c *fs.Control, docname string, r *epubgo.Epub) error {
 	if err != nil {
 		return err
 	}
-	w := c.MainWriter(docname, "document")
+	w, err := c.MainWriter(docname, "document")
+	if err != nil {
+		return err
+	}
+
 	body := html.NewHTMLCleaner(w, h)
 	defer body.Close()
 	for {
@@ -103,15 +127,19 @@ func parseEpubBody(c *fs.Control, docname string, r *epubgo.Epub) error {
 			log.Print(err)
 			continue
 		}
+
 		err = body.Parse(content)
 		if err != io.EOF {
 			return err
 		}
+
 		if err = it.Next(); err != nil {
 			break
 		}
+
 		body.WriteString("\n")
 	}
+
 	return nil
 }
 
@@ -121,25 +149,35 @@ func parseEpub(c *fs.Control, newfile string) error {
 	if _, err := os.Stat(docdir); os.IsNotExist(err) {
 		os.MkdirAll(docdir, 0755)
 	}
-	w := c.StatusWriter(docname)
-	status := markup.NewCleaner(w)
+
+	sw, err := c.StatusWriter(docname)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	status := markup.NewCleaner(sw)
 	defer status.Close()
 
 	// TODO: EPUB3 currently aren't supported by https://github.com/meskio/epubgo
 	// https://github.com/altid/docfs/issues/4
 	pages, err := epubgo.Open(newfile)
 	if err != nil {
-		status.WriteString("Error opening file. See log for details.")
 		return err
 	}
 	defer pages.Close()
 	status.WriteString("Parsing file...")
-	parseEpubTitle(c, docname, pages)
-	parseEpubNavi(c, docname, pages)
-	err = parseEpubBody(c, docname, pages)
-	if err != nil {
-		status.WriteString("Error parsing file. See log for details.")
-		return err
+
+	if e := parseEpubTitle(c, docname, pages); e != nil {
+		return e
 	}
+
+	if e := parseEpubNavi(c, docname, pages); e != nil {
+		return e
+	}
+
+	if e := parseEpubBody(c, docname, pages); e != nil {
+		return e
+	}
+
 	return c.Remove(docname, "status")
 }

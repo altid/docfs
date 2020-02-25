@@ -21,9 +21,14 @@ type entry struct {
 
 // TODO: Test navi
 func writeOutline(c *fs.Control, docname string, entries chan entry) {
-	w := c.SideWriter(docname)
+	w, err := c.SideWriter(docname)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	aside := markup.NewCleaner(w)
 	defer aside.Close()
+
 	for e := range entries {
 		url, err := markup.NewUrl(e.url, e.msg)
 		if err != nil {
@@ -31,6 +36,7 @@ func writeOutline(c *fs.Control, docname string, entries chan entry) {
 		}
 		aside.WritefList(e.len, "%s\n", url)
 	}
+
 }
 
 type docs struct{}
@@ -41,12 +47,13 @@ func newDocs() *docs {
 
 func (d *docs) Open(c *fs.Control, newfile string) error {
 	c.CreateBuffer(path.Base(newfile), "document")
+
 	err := parseDocument(c, newfile)
 	if err != nil {
-		log.Printf("%v in Open function call", err)
 		c.DeleteBuffer(path.Base(newfile), "document")
 		return err
 	}
+
 	return nil
 }
 

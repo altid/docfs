@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/altid/libs/config"
 	"github.com/altid/libs/fs"
 )
 
@@ -18,7 +19,7 @@ func main() {
 		os.Exit(1)
 	}
 	doc := newDocs()
-	logdir := fs.GetLogDir("docs")
+	logdir := config.GetLogDir("docs")
 	ctrl, err := fs.CreateCtlFile(doc, logdir, *mtpt, "docs", "document")
 	if err != nil {
 		log.Fatal(err)
