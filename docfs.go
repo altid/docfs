@@ -10,6 +10,7 @@ import (
 )
 
 var mtpt = flag.String("p", "/tmp/altid", "Path for file system")
+var debug = flag.Bool("d", false, "enable debug logging")
 
 func main() {
 	// Drink tab, listen to duran duran
@@ -20,7 +21,7 @@ func main() {
 	}
 	doc := newDocs()
 	logdir := config.GetLogDir("docs")
-	ctrl, err := fs.CreateCtlFile(doc, logdir, *mtpt, "docs", "document")
+	ctrl, err := fs.CreateCtlFile(doc, logdir, *mtpt, "docs", "document", *debug)
 	if err != nil {
 		log.Fatal(err)
 	}
