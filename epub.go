@@ -119,7 +119,11 @@ func parseEpubBody(c *fs.Control, docname string, r *epubgo.Epub) error {
 		return err
 	}
 
-	body := html.NewHTMLCleaner(w, h)
+	body, err := html.NewHTMLCleaner(w, h)
+	if err != nil {
+		return err
+	}
+
 	defer body.Close()
 	for {
 		content, err := it.Open()
