@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 
@@ -49,8 +50,14 @@ func main() {
 	}
 
 	ctrl.CreateBuffer("welcome", "document")
-	// TODO(halfwit): We want to create a default buffer - small how-to document would suffice
-	// https://github.com/altid//docfs/issues/5
+	wc, err := ctrl.MainWriter("welcome", "document")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Fprintln(wc, welcome)
+	wc.Close()
+
 	defer ctrl.Cleanup()
 	ctrl.Listen()
 }
