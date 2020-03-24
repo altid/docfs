@@ -19,19 +19,20 @@ type helper struct {
 }
 
 // Maybe EPUB 3 uses <nav> properly?
-func (h *helper) Nav(u *markup.Url) error {
+func (h *helper) Nav(u *html.URL) error {
 	return nil
 }
 
-func (h *helper) Img(link string) error {
-	log.Println(link)
+func (h *helper) Img(img *html.Image) error {
 	var rc io.ReadCloser
 	var err error
+
+	src := string(img.Src)
 	dirs := []string{
-		"OEBPS/" + link,
-		"OPS/" + link,
-		"EPUB/" + link,
-		link,
+		"OEBPS/" + src,
+		"OPS/" + src,
+		"EPUB/" + src,
+		src,
 	}
 
 	for _, try := range dirs {
@@ -45,7 +46,7 @@ func (h *helper) Img(link string) error {
 	}
 
 	defer rc.Close()
-	wc, err := h.c.ImageWriter(h.dir, link)
+	wc, err := h.c.ImageWriter(h.dir, src)
 	if err != nil {
 		return err
 	}
@@ -72,7 +73,7 @@ func parseEpubNavi(c *fs.Control, docname string, r *epubgo.Epub) error {
 	}
 
 	for {
-		url, _ := markup.NewUrl([]byte(it.URL()), []byte(it.Title()))
+		url, _ := markup.NewURL([]byte(it.URL()), []byte(it.Title()))
 		navi.WritefList(n, "%s\n", url)
 		switch {
 		case it.HasChildren():
@@ -119,7 +120,7 @@ func parseEpubBody(c *fs.Control, docname string, r *epubgo.Epub) error {
 		return err
 	}
 
-	body, err := html.NewHTMLCleaner(w, h)
+	body, err := html.NewCleaner(w, h)
 	if err != nil {
 		return err
 	}

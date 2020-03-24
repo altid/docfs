@@ -3,7 +3,7 @@ module github.com/altid/docfs
 go 1.14
 
 require (
-	github.com/altid/libs v0.0.0-20200314043833-77431354dd9c
+	github.com/altid/libs v0.0.3-alpha
 	github.com/meskio/epubgo v0.0.0-20160213181628-90dd5d78197f
 	rsc.io/pdf v0.1.1
 )

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"mime"
@@ -30,7 +31,7 @@ func writeOutline(c *fs.Control, docname string, entries chan entry) {
 	defer aside.Close()
 
 	for e := range entries {
-		url, err := markup.NewUrl(e.url, e.msg)
+		url, err := markup.NewURL(e.url, e.msg)
 		if err != nil {
 			continue
 		}
@@ -39,10 +40,8 @@ func writeOutline(c *fs.Control, docname string, entries chan entry) {
 
 }
 
-type docs struct{}
-
-func newDocs() *docs {
-	return &docs{}
+type docs struct {
+	cancel context.CancelFunc
 }
 
 func (d *docs) Open(c *fs.Control, newfile string) error {
@@ -67,8 +66,20 @@ func (d *docs) Link(c *fs.Control, from, newfile string) error {
 	return d.Open(c, newfile)
 }
 
-func (d *docs) Default(c *fs.Control, cmd, from, msg string) error {
+func (d *docs) Default(c *fs.Control, cmd *fs.Command) error {
 	return nil
+}
+
+func (d *docs) Restart(*fs.Control) error {
+	return nil
+}
+
+func (d *docs) Refresh(*fs.Control) error {
+	return nil
+}
+
+func (d *docs) Quit() {
+	d.cancel()
 }
 
 func doParse(c *fs.Control, newfile, mime string) error {
