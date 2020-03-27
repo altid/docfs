@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/altid/libs/config"
+	"github.com/altid/libs/config/types"
 	"github.com/altid/libs/fs"
 )
 
@@ -25,9 +26,9 @@ func main() {
 	}
 
 	conf := &struct {
-		Log  config.Logdir `Use directory for cached files (none to disable)`
-		Addr config.ListenAddress
-	}{"none", ""}
+		Log  types.Logdir
+		Listen types.ListenAddress
+	}{"none", "none"}
 
 	if *setup {
 		if e := config.Create(conf, *srv, "", *debug); e != nil {
