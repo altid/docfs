@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"mime"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/altid/libs/fs"
 	"github.com/altid/libs/markup"
@@ -44,37 +46,26 @@ type docs struct {
 	cancel context.CancelFunc
 }
 
-func (d *docs) Open(c *fs.Control, newfile string) error {
-	c.CreateBuffer(path.Base(newfile), "document")
+func (d *docs) Run(c *fs.Control, cmd *fs.Command) error {
+	switch cmd.Name {
+	case "open":
+		// Files can have whitespace
+		// Commands sent in may be paths
+		newfile := strings.Join(cmd.Args, " ")
+		c.CreateBuffer(newfile, "document")
 
-	err := parseDocument(c, newfile)
-	if err != nil {
-		c.DeleteBuffer(path.Base(newfile), "document")
-		return err
+		err := parseDocument(c, newfile)
+		if err != nil {
+			c.DeleteBuffer(path.Base(newfile), "document")
+			return err
+		}
+
+		return nil
+	case "close":
+		return c.DeleteBuffer(strings.Join(cmd.Args, " "), "document")
+	default:
+		return errors.New("Command not supported")
 	}
-
-	return nil
-}
-
-func (d *docs) Close(c *fs.Control, newfile string) error {
-	c.DeleteBuffer(path.Base(newfile), "document")
-	return nil
-}
-
-func (d *docs) Link(c *fs.Control, from, newfile string) error {
-	c.DeleteBuffer(path.Base(newfile), "document")
-	return d.Open(c, newfile)
-}
-
-func (d *docs) Default(c *fs.Control, cmd *fs.Command) error {
-	return nil
-}
-
-func (d *docs) Restart(*fs.Control) error {
-	return nil
-}
-
-func (d *docs) Refresh(*fs.Control) error {
 	return nil
 }
 
