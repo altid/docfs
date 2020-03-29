@@ -169,6 +169,7 @@ func parseEpub(c *fs.Control, newfile string) error {
 	if err != nil {
 		return err
 	}
+	
 	defer pages.Close()
 	status.WriteString("Parsing file...")
 
