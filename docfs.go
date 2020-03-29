@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -42,10 +41,7 @@ func main() {
 		log.Fatal(e)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	doc := &docs{cancel}
-
-	ctrl, err := fs.CreateCtlFile(ctx, doc, string(conf.Log), *mtpt, *srv, "document", *debug)
+	ctrl, err := fs.New(&docs{}, string(conf.Log), *mtpt, *srv, "document", *debug)
 	if err != nil {
 		log.Fatal(err)
 	}
