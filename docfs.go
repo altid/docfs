@@ -25,8 +25,8 @@ func main() {
 	}
 
 	conf := &struct {
-		Log    types.Logdir        `altid:"directory to log files to,no_prompt"`
-		Listen types.ListenAddress `altid:"listen address to use,omit_empty"`
+		Log    types.Logdir        `altid:"log,no_prompt"`
+		Listen types.ListenAddress `altid:"listen_address,no_prompt"`
 	}{"none", "none"}
 
 	if *setup {
