@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -26,8 +25,8 @@ func main() {
 	}
 
 	conf := &struct {
-		Log  types.Logdir
-		Listen types.ListenAddress
+		Log    types.Logdir        `altid:"log,no_prompt"`
+		Listen types.ListenAddress `altid:"listen_address,no_prompt"`
 	}{"none", "none"}
 
 	if *setup {
@@ -42,10 +41,7 @@ func main() {
 		log.Fatal(e)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	doc := &docs{cancel}
-
-	ctrl, err := fs.CreateCtlFile(ctx, doc, string(conf.Log), *mtpt, *srv, "document", *debug)
+	ctrl, err := fs.New(&docs{}, string(conf.Log), *mtpt, *srv, "document", *debug)
 	if err != nil {
 		log.Fatal(err)
 	}

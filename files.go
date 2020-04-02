@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -43,7 +42,7 @@ func writeOutline(c *fs.Control, docname string, entries chan entry) {
 }
 
 type docs struct {
-	cancel context.CancelFunc
+	// No-op
 }
 
 func (d *docs) Run(c *fs.Control, cmd *fs.Command) error {
@@ -70,7 +69,7 @@ func (d *docs) Run(c *fs.Control, cmd *fs.Command) error {
 }
 
 func (d *docs) Quit() {
-	d.cancel()
+	// No-op
 }
 
 func doParse(c *fs.Control, newfile, mime string) error {
