@@ -79,7 +79,7 @@ func doParse(c *fs.Control, newfile, mime string) error {
 	case "application/epub", "application/zip":
 		return parseEpub(c, newfile)
 	}
-	return fmt.Errorf("Unsupported document type requested: %q. PRs welcome!", mime)
+	return fmt.Errorf("unsupported document type requested: %q. PRs welcome!", mime)
 }
 
 func mimeFromContents(c *fs.Control, newfile string) error {

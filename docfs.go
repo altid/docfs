@@ -52,7 +52,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Fprintln(wc, welcome)
+	fmt.Fprintln(wc, "welcome")
 	wc.Close()
 
 	defer ctrl.Cleanup()
