@@ -1,26 +1,20 @@
-package main
+package session
 
 import (
 	"math"
-	"os"
 	"path"
 	"sort"
 	"strings"
 
-	"github.com/altid/libs/fs"
 	"github.com/altid/libs/markup"
+	"github.com/altid/libs/service/controller"
 	"rsc.io/pdf"
 )
 
-func parsePdfBody(c *fs.Control, docname string, r *pdf.Reader) error {
-	// test if logged document exists and is not empty
-	// exit early
-	// TODO halfwit: v0.0.1 set up logdir/resources/images/mydoc.pdf/, and link that to our local mydoc.pdf/images/
-	// TODO halfwit: v0.0.1 add anchors to link aside items to the main document
-	// This will be fixed with Navi
+func parsePdfBody(c controller.Controller, docname string, r *pdf.Reader) error {
 	numPages := r.NumPage()
 
-	w, err := c.MainWriter(docname, "document")
+	w, err := c.MainWriter(docname)
 	if err != nil {
 		return err
 	}
@@ -38,7 +32,7 @@ func parsePdfBody(c *fs.Control, docname string, r *pdf.Reader) error {
 	return nil
 }
 
-func parsePdfTitle(c *fs.Control, docname string, r *pdf.Reader) error {
+func parsePdfTitle(c controller.Controller, docname string, r *pdf.Reader) error {
 	w, err := c.TitleWriter(docname)
 	if err != nil {
 		return err
@@ -56,7 +50,7 @@ func parsePdfTitle(c *fs.Control, docname string, r *pdf.Reader) error {
 	return nil
 }
 
-func parsePdfSidebar(c *fs.Control, docname string, r *pdf.Reader) {
+func parsePdfSidebar(c controller.Controller, docname string, r *pdf.Reader) {
 	entries := make(chan entry)
 	defer close(entries)
 	go writeOutline(c, docname, entries)
@@ -80,12 +74,10 @@ func walkPdfOutline(r pdf.Outline, n int, entries chan entry) {
 	}
 }
 
-func parsePdf(c *fs.Control, newfile string) error {
+func parsePdf(c controller.Controller, newfile string) error {
 	docname := path.Base(newfile)
-
-	docdir := path.Join(*mtpt, "docs", docname)
-	if _, err := os.Stat(docdir); os.IsNotExist(err) {
-		os.MkdirAll(docdir, 0755)
+	if ! c.HasBuffer(docname) {
+		c.CreateBuffer(docname)
 	}
 
 	w, err := c.StatusWriter(docname)
@@ -116,10 +108,7 @@ func parsePage(body *markup.Cleaner, page pdf.Page) {
 	content := page.Content()
 
 	var text []pdf.Text
-	for _, t := range content.Text {
-		text = append(text, t)
-	}
-
+	text = append(text, content.Text...)
 	text = findWords(text)
 	for _, t := range text {
 		body.WriteStringEscaped(t.S + " ")
@@ -175,7 +164,7 @@ func findWords(chars []pdf.Text) (words []pdf.Text) {
 			f := ck.Font
 			f = strings.TrimSuffix(f, ",Italic")
 			f = strings.TrimSuffix(f, "-Italic")
-			words = append(words, pdf.Text{f, ck.FontSize, ck.X, ck.Y, end - ck.X, s})
+			words = append(words, pdf.Text{Font: f, FontSize: ck.FontSize, X: ck.X, Y: ck.Y, W: end - ck.X, S: s})
 			k = l
 		}
 		words[len(words)-1].S += "\n"

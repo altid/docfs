@@ -1,60 +1,117 @@
-package main
+package docfs
 
 import (
-	"flag"
-	"fmt"
-	"log"
-	"os"
+	"context"
 
+	"github.com/altid/docfs/internal/commands"
+	"github.com/altid/docfs/internal/session"
 	"github.com/altid/libs/config"
-	"github.com/altid/libs/config/types"
-	"github.com/altid/libs/fs"
+	"github.com/altid/libs/mdns"
+	"github.com/altid/libs/service"
+	"github.com/altid/libs/service/listener"
+	"github.com/altid/libs/store"
 )
 
-var mtpt = flag.String("p", "/tmp/altid", "Path for file system")
-var debug = flag.Bool("d", false, "enable debug logging")
-var srv = flag.String("s", "docs", "Name of service")
-var setup = flag.Bool("conf", false, "Set up configuration file")
+type Docfs struct {
+	run		func() error
+	session *session.Session
+	name	string
+	addr	string
+	debug	bool
+	mdns	*mdns.Entry
+	ctx		context.Context
+}
 
-func main() {
-	// Drink tab, listen to duran duran
-	flag.Parse()
-	if flag.Lookup("h") != nil {
-		flag.Usage()
-		os.Exit(1)
+var defaults *session.Defaults = &session.Defaults{
+	Logdir:	"",
+}
+
+func CreateConfig(srv string, debug bool) error {
+	return config.Create(defaults, srv, "", debug)
+}
+
+func Register(ldir bool, addr, srv string, debug bool) (*Docfs, error) {
+	if e := config.Marshal(defaults, srv, "", debug); e != nil {
+		return nil, e
 	}
-
-	conf := &struct {
-		Log    types.Logdir        `altid:"log,no_prompt"`
-		Listen types.ListenAddress `altid:"listen_address,no_prompt"`
-	}{"none", "none"}
-
-	if *setup {
-		if e := config.Create(conf, *srv, "", *debug); e != nil {
-			log.Fatal(e)
-		}
-
-		os.Exit(0)
-	}
-
-	if e := config.Marshal(conf, *srv, "", *debug); e != nil {
-		log.Fatal(e)
-	}
-
-	ctrl, err := fs.New(&docs{}, string(conf.Log), *mtpt, *srv, "document", *debug)
+	l, err := tolisten(defaults, addr, debug)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
+	}
+	s := tostore(defaults, ldir, debug)
+	session := &session.Session{
+		Defaults: defaults,
+		Verbose:  debug,
 	}
 
-	ctrl.CreateBuffer("welcome", "document")
-	wc, err := ctrl.MainWriter("welcome", "document")
+	session.Parse()
+	ctx := context.Background()
+
+	d := &Docfs{
+		session:	session,
+		ctx:		ctx,
+		name:		srv,
+		addr:		addr,
+		debug:		debug,
+	}
+
+	c := service.New(srv, addr, debug)
+	c.WithListener(l)
+	c.WithStore(s)
+	c.WithContext(ctx)
+	c.WithCallbacks(session)
+	c.WithRunner(session)
+
+	c.SetCommands(commands.Commands)
+	d.run = c.Listen
+
+	return d, nil
+}
+
+func (doc *Docfs) Run() error {
+	return doc.run()
+}
+
+func (doc *Docfs) Broadcast() error {
+	entry, err := mdns.ParseURL(doc.addr, doc.name)
 	if err != nil {
-		log.Fatal(err)
+		return err
+	}
+	if e := mdns.Register(entry); e != nil {
+		return e
+	}
+	doc.mdns = entry
+	return nil
+}
+
+func (doc *Docfs) Cleanup() {
+	if doc.mdns != nil {
+		doc.mdns.Cleanup()
+	}
+	doc.session.Quit()
+}
+
+func (doc *Docfs) Session() *session.Session {
+	return doc.session
+}
+
+
+func tolisten(d *session.Defaults, addr string, debug bool) (listener.Listener, error) {
+	//if ssh {
+	//    return listener.NewListenSsh()
+	//}
+
+	if d.TLSKey == "none" && d.TLSCert == "none" {
+		return listener.NewListen9p(addr, "", "", debug)
 	}
 
-	fmt.Fprintln(wc, "welcome")
-	wc.Close()
+	return listener.NewListen9p(addr, d.TLSCert, d.TLSKey, debug)
+}
 
-	defer ctrl.Cleanup()
-	ctrl.Listen()
+func tostore(d *session.Defaults, ldir, debug bool) store.Filer {
+	if ldir {
+		return store.NewLogstore(d.Logdir.String(), debug)
+	}
+
+	return store.NewRamstore(debug)
 }

@@ -1,19 +1,18 @@
-package main
+package session
 
 import (
 	"io"
 	"log"
-	"os"
 	"path"
 
-	"github.com/altid/libs/fs"
 	"github.com/altid/libs/html"
 	"github.com/altid/libs/markup"
+	"github.com/altid/libs/service/controller"
 	"github.com/meskio/epubgo"
 )
 
 type helper struct {
-	c   *fs.Control
+	c   controller.Controller
 	r   *epubgo.Epub
 	dir string
 }
@@ -57,7 +56,7 @@ func (h *helper) Img(img *html.Image) error {
 	return err
 }
 
-func parseEpubNavi(c *fs.Control, docname string, r *epubgo.Epub) error {
+func parseEpubNavi(c controller.Controller, docname string, r *epubgo.Epub) error {
 	var n int
 	w, err := c.NavWriter(docname)
 	if err != nil {
@@ -91,7 +90,7 @@ func parseEpubNavi(c *fs.Control, docname string, r *epubgo.Epub) error {
 	}
 }
 
-func parseEpubTitle(c *fs.Control, docname string, r *epubgo.Epub) error {
+func parseEpubTitle(c controller.Controller, docname string, r *epubgo.Epub) error {
 	w, err := c.TitleWriter(docname)
 	if err != nil {
 		return err
@@ -105,7 +104,7 @@ func parseEpubTitle(c *fs.Control, docname string, r *epubgo.Epub) error {
 	return nil
 }
 
-func parseEpubBody(c *fs.Control, docname string, r *epubgo.Epub) error {
+func parseEpubBody(c controller.Controller, docname string, r *epubgo.Epub) error {
 	h := &helper{
 		c:   c,
 		r:   r,
@@ -115,7 +114,7 @@ func parseEpubBody(c *fs.Control, docname string, r *epubgo.Epub) error {
 	if err != nil {
 		return err
 	}
-	w, err := c.MainWriter(docname, "document")
+	w, err := c.MainWriter(docname)
 	if err != nil {
 		return err
 	}
@@ -148,11 +147,10 @@ func parseEpubBody(c *fs.Control, docname string, r *epubgo.Epub) error {
 	return nil
 }
 
-func parseEpub(c *fs.Control, newfile string) error {
+func parseEpub(c controller.Controller, newfile string) error {
 	docname := path.Base(newfile)
-	docdir := path.Join(*mtpt, "docs", docname)
-	if _, err := os.Stat(docdir); os.IsNotExist(err) {
-		os.MkdirAll(docdir, 0755)
+	if ! c.HasBuffer(docname) {
+		c.CreateBuffer(docname)
 	}
 
 	sw, err := c.StatusWriter(docname)
