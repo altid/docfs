@@ -13,17 +13,19 @@ import (
 )
 
 type Docfs struct {
-	run		func() error
+	run     func() error
 	session *session.Session
-	name	string
-	addr	string
-	debug	bool
-	mdns	*mdns.Entry
-	ctx		context.Context
+	name    string
+	addr    string
+	debug   bool
+	mdns    *mdns.Entry
+	ctx     context.Context
 }
 
 var defaults *session.Defaults = &session.Defaults{
-	Logdir:	"",
+	Logdir:  "",
+	TLSCert: "",
+	TLSKey:  "",
 }
 
 func CreateConfig(srv string, debug bool) error {
@@ -48,11 +50,11 @@ func Register(ldir bool, addr, srv string, debug bool) (*Docfs, error) {
 	ctx := context.Background()
 
 	d := &Docfs{
-		session:	session,
-		ctx:		ctx,
-		name:		srv,
-		addr:		addr,
-		debug:		debug,
+		session: session,
+		ctx:     ctx,
+		name:    srv,
+		addr:    addr,
+		debug:   debug,
 	}
 
 	c := service.New(srv, addr, debug)
@@ -94,7 +96,6 @@ func (doc *Docfs) Cleanup() {
 func (doc *Docfs) Session() *session.Session {
 	return doc.session
 }
-
 
 func tolisten(d *session.Defaults, addr string, debug bool) (listener.Listener, error) {
 	//if ssh {

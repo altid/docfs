@@ -15,6 +15,7 @@ import (
 )
 
 type ctlItem int
+
 const (
 	ctlCommand ctlItem = iota
 	ctlSucceed
@@ -22,18 +23,18 @@ const (
 )
 
 type Session struct {
-	ctx			context.Context
-	cancel		context.CancelFunc
-	ctrl		controller.Controller
-	Defaults	*Defaults
-	Verbose		bool
-	debug		func(ctlItem, ...any)
+	ctx      context.Context
+	cancel   context.CancelFunc
+	ctrl     controller.Controller
+	Defaults *Defaults
+	Verbose  bool
+	debug    func(ctlItem, ...any)
 }
 
 type Defaults struct {
-	Logdir	types.Logdir `altid:"logdir,no_prompt"`
-	TLSCert	string		 `altid:"tlscert,no_prompt"`
-	TLSKey	string		 `altid:"tlskey,no_prompt"`
+	Logdir  types.Logdir `altid:"logdir,no_prompt"`
+	TLSCert string       `altid:"tlscert,no_prompt"`
+	TLSKey  string       `altid:"tlskey,no_prompt"`
 }
 
 func (s *Session) Parse() {

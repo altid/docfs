@@ -11,6 +11,7 @@ import (
 	"rsc.io/pdf"
 )
 
+// TODO: https://github.com/dslipak/pdf
 func parsePdfBody(c controller.Controller, docname string, r *pdf.Reader) error {
 	numPages := r.NumPage()
 
@@ -76,7 +77,7 @@ func walkPdfOutline(r pdf.Outline, n int, entries chan entry) {
 
 func parsePdf(c controller.Controller, newfile string) error {
 	docname := path.Base(newfile)
-	if ! c.HasBuffer(docname) {
+	if !c.HasBuffer(docname) {
 		c.CreateBuffer(docname)
 	}
 

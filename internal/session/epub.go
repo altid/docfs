@@ -149,7 +149,7 @@ func parseEpubBody(c controller.Controller, docname string, r *epubgo.Epub) erro
 
 func parseEpub(c controller.Controller, newfile string) error {
 	docname := path.Base(newfile)
-	if ! c.HasBuffer(docname) {
+	if !c.HasBuffer(docname) {
 		c.CreateBuffer(docname)
 	}
 
@@ -167,7 +167,7 @@ func parseEpub(c controller.Controller, newfile string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	defer pages.Close()
 	status.WriteString("Parsing file...")
 
